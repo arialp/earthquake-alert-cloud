@@ -90,7 +90,3 @@ gcloud functions deploy check_latest_earthquake \
 | Alp Eren Arı      | 212010020039   |
 | Yılmaz Büyük      | 212010020077   |
 | Bekir Eren Ünüvar | 202010020072   |
-
-## License
-
-This project is for academic and educational use only.
