@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Earthquake Alert System</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    .stats-section {
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #333;
+      text-align: center;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .stat-card.primary .stat-number { color: #667eea; }
+    .stat-card.success .stat-number { color: #48bb78; }
+    .stat-card.warning .stat-number { color: #ed8936; }
+    .stat-card.danger .stat-number { color: #f56565; }
+    .stat-card.info .stat-number { color: #38b2ac; }
+    .stat-card.purple .stat-number { color: #9f7aea; }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .panel-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      margin-left: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #4a5568;
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e0;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      padding: 15px 20px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 15px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.95rem;
+    }
+
+    tr:hover {
+      background: #f8fafc;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 350px;
+      margin-top: 20px;
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .status-active {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .search-bar {
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      width: 100%;
+      max-width: 400px;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .action-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.3s ease;
+    }
+
+    .action-delete {
+      background: #e53e3e;
+      color: white;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .alert-success {
+      background: #c6f6d5;
+      color: #22543d;
+      border: 1px solid #48bb78;
+    }
+
+    .alert-error {
+      background: #fed7e2;
+      color: #742a2a;
+      border: 1px solid #e53e3e;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Earthquake Alert - Admin Dashboard</h1>
+      <p>Manage subscribers, monitor email campaigns, and view system analytics</p>
+    </div>
+
+    <!-- Alert Messages -->
+    <div id="alertContainer"></div>
+
+    <!-- Email Stats Cards -->
+    <div class="stats-section">
+      <div class="section-title">📧 Email Campaign Metrics (30 days)</div>
+      <div class="stats-grid">
+        <div class="stat-card primary">
+          <div class="stat-number" id="totalSubscribers">-</div>
+          <div class="stat-label">Total Subscribers</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-number" id="emailsDelivered">-</div>
+          <div class="stat-label">Emails Delivered</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-number" id="openRate">-</div>
+          <div class="stat-label">Open Rate</div>
+        </div>
+        <div class="stat-card info">
+          <div class="stat-number" id="clickRate">-</div>
+          <div class="stat-label">Click Rate</div>
+        </div>
+        <div class="stat-card danger">
+          <div class="stat-number" id="bounceRate">-</div>
+          <div class="stat-label">Bounce Rate</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-number" id="totalClicked">-</div>
+          <div class="stat-label">Total Clicks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Google Cloud Stats Cards -->
+    <div class="stats-section">
+      <div class="section-title">☁️ Google Cloud Metrics (24h)</div>
+      <div class="stats-grid">
+        <div class="stat-card info">
+          <div class="stat-number" id="totalInvocations">-</div>
+          <div class="stat-label">Function Calls/hour</div>
+        </div>
+        <div class="stat-card danger">
+          <div class="stat-number" id="totalErrors">-</div>
+          <div class="stat-label">Function Errors/hour</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-number" id="totalReads">-</div>
+          <div class="stat-label">Firestore Reads/hour</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-number" id="totalWrites">-</div>
+          <div class="stat-label">Firestore Writes/hour</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Google Cloud Metrics Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">☁️ Google Cloud Analytics</h2>
+          <div>
+            <button class="btn btn-secondary" onclick="refreshCloudMetrics()">Refresh Cloud Data</button>
+          </div>
+        </div>
+        
+        <div class="charts-grid">
+          <div class="chart-container">
+            <canvas id="functionsChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <canvas id="firestoreChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email Analytics Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">📧 Email Campaign Analytics</h2>
+          <div>
+            <button class="btn btn-secondary" onclick="refreshStats()">Refresh Email Stats</button>
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <canvas id="mailgunChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Subscribers Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">👥 Subscriber Management</h2>
+          <div>
+            <button class="btn btn-secondary" onclick="exportSubscribers()">Export CSV</button>
+            <button class="btn btn-primary" onclick="refreshData()">Refresh</button>
+          </div>
+        </div>
+        
+        <div class="search-bar">
+          <input type="text" class="search-input" id="searchInput" placeholder="Search subscribers..." onkeyup="filterSubscribers(this.value)">
+        </div>
+
+        <div class="table-container">
+          <table id="subscriberTable">
+            <thead>
+              <tr>
+                <th>Email Address</th>
+                <th>Subscription Date</th>
+                <th>Emails Sent</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="subscriberTableBody">
+              <tr>
+                <td colspan="5" class="loading">Loading subscribers...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allSubscribers = [];
+    let mailgunChart = null;
+    let functionsChart = null;
+    let firestoreChart = null;
+    const BASE_URL = "https://europe-west1-deprem-460420.cloudfunctions.net";
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+      loadSubscribers();
+      loadMailgunStats();
+      loadCloudMetrics();
+    });
+
+    // Show alert message
+    function showAlert(message, type = 'success') {
+      const alertContainer = document.getElementById('alertContainer');
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type}`;
+      alertDiv.textContent = message;
+      
+      alertContainer.appendChild(alertDiv);
+      
+      setTimeout(() => {
+        alertDiv.remove();
+      }, 5000);
+    }
+
+    // Load Google Cloud metrics
+    async function loadCloudMetrics() {
+      try {
+        const response = await fetch(`${BASE_URL}/getCloudMetrics`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          updateCloudStatsCards(data.summary);
+          createFunctionsChart(data.functionInvocations, data.functionErrors);
+          createFirestoreChart(data.firestoreReads, data.firestoreWrites);
+        } else {
+          throw new Error(data.error || 'Failed to load cloud metrics');
+        }
+      } catch (error) {
+        console.error("Error loading cloud metrics:", error);
+        showAlert('Error loading cloud metrics: ' + error.message, 'error');
+      }
+    }
+
+    // Update cloud stats cards
+    function updateCloudStatsCards(summary) {
+      document.getElementById('totalInvocations').textContent = Math.round(summary.totalInvocations);
+      document.getElementById('totalErrors').textContent = Math.round(summary.totalErrors);
+      document.getElementById('totalReads').textContent = Math.round(summary.totalReads);
+      document.getElementById('totalWrites').textContent = Math.round(summary.totalWrites);
+    }
+
+    // Create functions chart
+    function createFunctionsChart(invocations, errors) {
+      const ctx = document.getElementById("functionsChart").getContext("2d");
+      
+      if (functionsChart) {
+        functionsChart.destroy();
+      }
+
+      if (!invocations || invocations.length === 0) {
+        ctx.font = "16px Arial";
+        ctx.fillText("No function data available", 10, 50);
+        return;
+      }
+
+      const labels = invocations.map(point => new Date(point.timestamp).toLocaleDateString());
+      const invocationData = invocations.map(point => point.value);
+      const errorData = errors.map(point => point.value);
+
+      functionsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Function Invocations',
+              data: invocationData,
+              borderColor: '#38b2ac',
+              backgroundColor: 'rgba(56, 178, 172, 0.1)',
+              fill: true,
+              tension: 0.4
+            },
+            {
+              label: 'Function Errors',
+              data: errorData,
+              borderColor: '#f56565',
+              backgroundColor: 'rgba(245, 101, 101, 0.1)',
+              fill: true,
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            title: { 
+              display: true, 
+              text: 'Cloud Functions Performance (calls/hour)',
+              font: { size: 14, weight: 'bold' }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true },
+            x: { }
+          }
+        }
+      });
+    }
+
+    // Create Firestore chart
+    function createFirestoreChart(reads, writes) {
+      const ctx = document.getElementById("firestoreChart").getContext("2d");
+      
+      if (firestoreChart) {
+        firestoreChart.destroy();
+      }
+
+      if (!reads || reads.length === 0) {
+        ctx.font = "16px Arial";
+        ctx.fillText("No Firestore data available", 10, 50);
+        return;
+      }
+
+      const labels = reads.map(point => new Date(point.timestamp).toLocaleDateString());
+      const readData = reads.map(point => point.value);
+      const writeData = writes.map(point => point.value);
+
+      firestoreChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Reads',
+              data: readData,
+              backgroundColor: 'rgba(159, 122, 234, 0.7)',
+              borderColor: '#9f7aea',
+              borderWidth: 1
+            },
+            {
+              label: 'Writes',
+              data: writeData,
+              backgroundColor: 'rgba(72, 187, 120, 0.7)',
+              borderColor: '#48bb78',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            title: { 
+              display: true, 
+              text: 'Firestore Operations (operations/hour)',
+              font: { size: 14, weight: 'bold' }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true },
+            x: { }
+          }
+        }
+      });
+    }
+
+    // Load subscribers data
+    async function loadSubscribers() {
+      try {
+        const response = await fetch(`${BASE_URL}/getSubscribers`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          allSubscribers = data.subscribers;
+          displaySubscribers(allSubscribers);
+          updateStatsCards();
+        } else {
+          throw new Error(data.error || 'Failed to load subscribers');
+        }
+      } catch (error) {
+        console.error("Error loading subscribers:", error);
+        document.getElementById('subscriberTableBody').innerHTML = 
+          '<tr><td colspan="5" style="text-align: center; color: #e53e3e;">Error loading subscribers</td></tr>';
+        showAlert('Error loading subscribers: ' + error.message, 'error');
+      }
+    }
+
+    // Display subscribers in table
+    function displaySubscribers(subscribers) {
+      const tbody = document.getElementById('subscriberTableBody');
+      
+      if (subscribers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No subscribers found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = subscribers.map(sub => `
+        <tr>
+          <td>${sub.email}</td>
+          <td>${new Date(sub.timestamp).toLocaleDateString()}</td>
+          <td>${sub.emails_sent || 0}</td>
+          <td><span class="status-badge status-active">Active</span></td>
+          <td>
+            <div class="actions">
+              <button class="action-btn action-delete" onclick="deleteSubscriber('${sub.email}')" id="delete-${sub.email.replace('@', '-').replace('.', '-')}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Filter subscribers
+    function filterSubscribers(searchTerm) {
+      const filtered = allSubscribers.filter(sub => 
+        sub.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      displaySubscribers(filtered);
+    }
+
+    // Load Mailgun statistics
+    async function loadMailgunStats() {
+      try {
+        const response = await fetch(`${BASE_URL}/getMailgunStats`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          updateStatsFromMailgun(data);
+          createMailgunChart(data.dailyStats || []);
+        } else {
+          throw new Error(data.error || 'Failed to load stats');
+        }
+      } catch (error) {
+        console.error("Error loading Mailgun stats:", error);
+        showAlert('Error loading email stats: ' + error.message, 'error');
+      }
+    }
+
+    // Update stats cards
+    function updateStatsCards() {
+      document.getElementById('totalSubscribers').textContent = allSubscribers.length;
+    }
+
+    // Update stats from Mailgun
+    function updateStatsFromMailgun(data) {
+      document.getElementById('emailsDelivered').textContent = data.mailgunStats.delivered;
+      document.getElementById('openRate').textContent = data.rates.openRate + '%';
+      document.getElementById('clickRate').textContent = data.rates.clickRate + '%';
+      document.getElementById('bounceRate').textContent = data.rates.bounceRate + '%';
+      document.getElementById('totalClicked').textContent = data.mailgunStats.clicked;
+    }
+
+    // Create Mailgun chart
+    function createMailgunChart(dailyData) {
+      const ctx = document.getElementById("mailgunChart").getContext("2d");
+      
+      if (mailgunChart) {
+        mailgunChart.destroy();
+      }
+
+      if (!dailyData || dailyData.length === 0) {
+        ctx.font = "16px Arial";
+        ctx.fillText("No email campaign data available", 10, 50);
+        return;
+      }
+
+      const labels = dailyData.map(day => new Date(day.date).toLocaleDateString());
+      const delivered = dailyData.map(day => day.delivered || 0);
+      const opened = dailyData.map(day => day.opened || 0);
+      const clicked = dailyData.map(day => day.clicked || 0);
+      const bounced = dailyData.map(day => day.bounced || 0);
+
+      mailgunChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Delivered',
+              data: delivered,
+              borderColor: '#48bb78',
+              backgroundColor: 'rgba(72, 187, 120, 0.1)',
+              fill: false,
+              tension: 0.4
+            },
+            {
+              label: 'Opened',
+              data: opened,
+              borderColor: '#667eea',
+              backgroundColor: 'rgba(102, 126, 234, 0.1)',
+              fill: false,
+              tension: 0.4
+            },
+            {
+              label: 'Clicked',
+              data: clicked,
+              borderColor: '#38b2ac',
+              backgroundColor: 'rgba(56, 178, 172, 0.1)',
+              fill: false,
+              tension: 0.4
+            },
+            {
+              label: 'Bounced',
+              data: bounced,
+              borderColor: '#f56565',
+              backgroundColor: 'rgba(245, 101, 101, 0.1)',
+              fill: false,
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            title: { 
+              display: true, 
+              text: 'Email Campaign Performance (Last 30 Days)',
+              font: { size: 14, weight: 'bold' }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true },
+            x: { }
+          }
+        }
+      });
+    }
+
+    // Delete subscriber
+    async function deleteSubscriber(email) {
+      if (!confirm(`Are you sure you want to delete ${email}?`)) {
+        return;
+      }
+
+      const buttonId = `delete-${email.replace('@', '-').replace('.', '-')}`;
+      const button = document.getElementById(buttonId);
+      
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Deleting...';
+      }
+
+      try {
+        const response = await fetch(`${BASE_URL}/deleteSubscriber`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert(`Successfully deleted ${email}`, 'success');
+          await loadSubscribers();
+        } else {
+          throw new Error(data.error || 'Failed to delete subscriber');
+        }
+      } catch (error) {
+        console.error("Error deleting subscriber:", error);
+        showAlert('Error deleting subscriber: ' + error.message, 'error');
+        
+        if (button) {
+          button.disabled = false;
+          button.textContent = 'Delete';
+        }
+      }
+    }
+
+    // Export subscribers to CSV
+    function exportSubscribers() {
+      if (allSubscribers.length === 0) {
+        showAlert('No subscribers to export', 'error');
+        return;
+      }
+
+      const csvContent = "data:text/csv;charset=utf-8," + 
+        "Email,Subscription Date,Emails Sent\n" +
+        allSubscribers.map(sub => 
+          `${sub.email},${new Date(sub.timestamp).toLocaleDateString()},${sub.emails_sent || 0}`
+        ).join("\n");
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `subscribers-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showAlert('Subscribers exported successfully', 'success');
+    }
+
+    // Refresh functions
+    async function refreshData() {
+      showAlert('Refreshing all data...', 'success');
+      await Promise.all([loadSubscribers(), loadMailgunStats(), loadCloudMetrics()]);
+    }
+
+    async function refreshStats() {
+      await loadMailgunStats();
+      showAlert('Email stats refreshed', 'success');
+    }
+
+    async function refreshCloudMetrics() {
+      await loadCloudMetrics();
+      showAlert('Cloud metrics refreshed', 'success');
+    }
+  </script>
+</body>
+</html>
